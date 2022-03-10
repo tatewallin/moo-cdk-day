@@ -1,0 +1,26 @@
+!jest.config.js
+!.eslintrc.js
+!webpack.config.js
+yarn-error.log
+
+node_modules
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+
+# CDK build output
+dist
+outputs.json
+
+# AWS SAM build output
+.aws-sam
+
+# Jest Test Results
+.jest
+
+# Intellij
+.idea/**
+
+.yarn/cache/
+.yarn/install-state.gz

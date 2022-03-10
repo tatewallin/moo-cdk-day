@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- This webpage is intentionally as simple as possible with the goal of demonstrating
+capturing user inputs and passing them to an api call. This page is not intended to be
+an example of an awesome web application -->
+
+<head>
+    <title>Serverless Rest Api Reference Architecture</title>
+    <!--  Do not use these cdns in production apps. They are moo css classes.
+    See https://design.mutualofomaha.com/digital/guidelines/getting-started/ for information about
+    how to do this correctly in a moo web application. Sonarqube requires that CDN includes have integrity check-->
+    <link rel="stylesheet" href="https://cdn.mutualofomaha.com/dgs/mooui/5.2.7/mooui.min.css"> <!-- //NOSONAR -->
+    <script src="https://cdn.mutualofomaha.com/dgs/mooui/5.2.7/mooui.min.js"></script> <!-- //NOSONAR -->
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,600,700" rel="stylesheet">
+</head>
+
+<body>
+<div class="Container">
+    <!-- Corporate header  -->
+    <nav class="CorporateNav">
+        <div class="CorporateNav-container">
+            <div class="CorporateNav-logo">
+                <a href="#"></a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="u-pV8 u-pH8">
+        <!-- The api key field -->
+        <div class="Field u-size6of12">
+            <label for="apiKey" class="Field-label">x-api-key</label>
+            <input type="password" id="apiKey" class="Input" placeholder="Api key" required />
+        </div>
+        <!-- The form to add users  -->
+        <form class="bg-white  rounded-5 shadow-5-strong p-5" id="mainForm">
+            <div class="Field u-size6of12">
+                <label for="userId" class="Field-label">User ID</label>
+                <input type="text" id="userId" name="userId" class="Input" required />
+            </div>
+            <div class="Field u-size6of12">
+                <label for="name" class="Field-label">Name</label>
+                <input type="text" id="name" name="name" class="Input" required />
+            </div>
+            <div class="Field u-size6of12">
+                <label for="address" class="Field-label">Address</label>
+                <input type="text" id="address" name="address" class="Input" required />
+            </div>
+            <button id="add-user" class="Button">Add User</button>
+        </form>
+        <!-- The table to display users  -->
+        <table class="Table u-mV5">
+            <caption>Users</caption>
+            <thead>
+            <tr>
+                <th id="head-userId">userId</th>
+                <th id="head-name">Name</th>
+                <th id="head-address">Address</th>
+            </tr>
+            </thead>
+            <tbody id="users-table-body"><!-- User table data will be inserted here --></tbody>
+        </table>
+        <button id="get-users" class="Button Button--outline" onclick="updateUsersTableBody()">Get Users</button>
+    </div>
+</div>
+
+<script>
+    // Api Gateway resource for user lambdas
+    const URI = "/api/users"
+
+    /**
+     * method invoked when user click Add User button
+     */
+    document.getElementById("add-user").addEventListener("click", async(e) => {
+        e.preventDefault();
+        const formData = new FormData(document.getElementById("mainForm"));
+        const entries = Object.fromEntries(formData.entries());
+        const apiKey = document.getElementById("apiKey").value;
+        // make API POST call to create a user with the data in the form
+        await fetch(URI, {
+            method: "POST",
+            headers: { "x-api-key": apiKey, "Content-type": "application/json; charset=UTF-8" },
+            body: JSON.stringify(entries)
+        });
+        // Update the users-table-body after the user is added
+        await updateUsersTableBody();
+    })
+
+    /**
+     * Function to update the users-table-body
+     */
+    async function updateUsersTableBody() {
+        const apiKey = document.getElementById("apiKey").value;
+        // make API GET call to get list of users
+        const response = await fetch(URI, {
+            method: "GET",
+            headers: { "x-api-key": apiKey, "Content-Type": "application/json" }
+        });
+        const data = await response.json();
+        const tableBody = document.getElementById("users-table-body");
+        data.forEach((user) => {
+            const tr = document.createElement('tr');
+            const idCell = tr.insertCell(0);
+            idCell.textContent = user.userId;
+            const nameCell = tr.insertCell(1);
+            nameCell.textContent = user.name;
+            const addressCell = tr.insertCell(2);
+            addressCell.textContent = user.address;
+            tableBody.appendChild(tr);
+        });
+    }
+</script>
+</body>
+</html>
